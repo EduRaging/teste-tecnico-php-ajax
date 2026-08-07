@@ -1,0 +1,35 @@
+body {
+    background-color: #f4f6f9;
+}
+
+.login-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+}
+
+.login-card {
+    max-width: 440px;
+    margin: 0 auto;
+    border: 0;
+    border-radius: 1rem;
+}
+
+.dashboard-card {
+    border: 0;
+    border-radius: 1rem;
+}
+
+.table th,
+.table td {
+    vertical-align: middle;
+}
+
+.acoes-coluna {
+    width: 170px;
+}
+
+#areaMensagem {
+    min-height: 58px;
+}
+
