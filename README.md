@@ -89,14 +89,12 @@ teste-tecnico/
 ├── includes/auth.php
 ├── banco.sql
 ├── dashboard.php
-├── GUIA-RAPIDO.md
 ├── index.php
 ├── login.php
 ├── logout.php
 └── README.md
 ```
 
-O arquivo `GUIA-RAPIDO.md` explica o fluxo e os conceitos principais para a apresentação do teste.
 
 ## Como o sistema funciona
 
