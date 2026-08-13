@@ -2,11 +2,18 @@
 
 declare(strict_types=1);
 
-const DB_HOST = '127.0.0.1';
-const DB_PORT = '3306';
-const DB_NAME = 'teste_tecnico';
-const DB_USER = 'root';
-const DB_PASS = '';
+function obterVariavelAmbiente(string $nome, string $valorPadrao): string
+{
+    $valor = getenv($nome);
+
+    return $valor === false ? $valorPadrao : $valor;
+}
+
+define('DB_HOST', obterVariavelAmbiente('DB_HOST', '127.0.0.1'));
+define('DB_PORT', obterVariavelAmbiente('DB_PORT', '3306'));
+define('DB_NAME', obterVariavelAmbiente('DB_NAME', 'teste_tecnico'));
+define('DB_USER', obterVariavelAmbiente('DB_USER', 'root'));
+define('DB_PASS', obterVariavelAmbiente('DB_PASS', ''));
 
 function conectarBanco(): PDO
 {
@@ -31,4 +38,3 @@ function conectarBanco(): PDO
 
     return $conexao;
 }
-
