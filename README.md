@@ -9,6 +9,8 @@ Teste técnico desenvolvido com PHP, PDO, MySQL/MariaDB, Bootstrap e jQuery/Ajax
 - PDO com driver MySQL;
 - Bootstrap 5.3.8 via CDN;
 - jQuery 3.7.1 via CDN;
+- Playwright para testes automatizados end-to-end;
+- GitHub Actions para integração contínua;
 - Apache, Nginx ou servidor PHP equivalente.
 
 ## Funcionalidades
@@ -61,22 +63,28 @@ A senha acima aparece somente como instrução de teste. No banco ela é armazen
 
 ## Configuração do banco
 
-Os dados de conexão ficam em `config/database.php`:
+Os dados de conexão ficam em `config/database.php`. O projeto procura primeiro
+variáveis de ambiente e, quando elas não existem, utiliza os valores padrão do
+XAMPP:
 
 ```php
-const DB_HOST = '127.0.0.1';
-const DB_PORT = '3306';
-const DB_NAME = 'teste_tecnico';
-const DB_USER = 'root';
-const DB_PASS = '';
+define('DB_HOST', obterVariavelAmbiente('DB_HOST', '127.0.0.1'));
+define('DB_PORT', obterVariavelAmbiente('DB_PORT', '3306'));
+define('DB_NAME', obterVariavelAmbiente('DB_NAME', 'teste_tecnico'));
+define('DB_USER', obterVariavelAmbiente('DB_USER', 'root'));
+define('DB_PASS', obterVariavelAmbiente('DB_PASS', ''));
 ```
 
-Esses são os valores padrão de uma instalação local do XAMPP. Caso sua instalação tenha uma senha para o usuário `root` ou use outra porta, altere essas constantes.
+Esses são os valores padrão de uma instalação local do XAMPP. Caso sua instalação
+tenha uma senha para o usuário `root` ou use outra porta, configure as variáveis
+de ambiente correspondentes ou ajuste os valores padrão do arquivo.
 
 ## Estrutura do projeto
 
 ```text
 teste-tecnico/
+├── .github/workflows/
+│   └── playwright.yml
 ├── api/usuarios/
 │   ├── buscar.php
 │   ├── excluir.php
@@ -87,11 +95,17 @@ teste-tecnico/
 │   └── js/usuarios.js
 ├── config/database.php
 ├── includes/auth.php
+├── tests/
+│   ├── e2e/usuarios.spec.js
+│   └── support/init-database.php
 ├── banco.sql
 ├── dashboard.php
 ├── index.php
 ├── login.php
 ├── logout.php
+├── package.json
+├── package-lock.json
+├── playwright.config.js
 └── README.md
 ```
 
@@ -133,6 +147,68 @@ O dashboard cria um token aleatório ligado à sessão. Cadastro, edição, excl
 7. Edite o usuário novamente e informe uma nova senha.
 8. Exclua o usuário e confira o modal de confirmação.
 9. Tente abrir `dashboard.php` depois de sair.
+
+## Testes automatizados com Playwright
+
+Os testes simulam o comportamento de uma pessoa no navegador e validam:
+
+- bloqueio do dashboard sem autenticação;
+- mensagem para credenciais inválidas;
+- login, listagem Ajax e logout;
+- cadastro, edição e exclusão via Ajax, sem reload;
+- tratamento de e-mail duplicado.
+
+### Executar usando o XAMPP
+
+É necessário ter o Node.js 20 ou superior instalado. Com Apache e MySQL ativos,
+importe `banco.sql`, abra o PowerShell dentro da pasta do projeto e execute:
+
+```powershell
+npm install
+npx playwright install chromium
+$env:BASE_URL="http://localhost/teste-tecnico/"
+npm test
+```
+
+Altere a URL se a pasta tiver outro nome dentro de `htdocs`. A variável
+`BASE_URL` informa ao Playwright que ele deve usar o servidor do XAMPP já ativo.
+
+Para abrir o navegador durante a execução:
+
+```powershell
+npm run test:e2e:headed
+```
+
+Para abrir a interface visual do Playwright:
+
+```powershell
+npm run test:e2e:ui
+```
+
+Quando o teste falha, o Playwright gera evidências em `test-results/`. O relatório
+HTML pode ser aberto com:
+
+```powershell
+npm run test:e2e:report
+```
+
+## Esteira de integração contínua
+
+O arquivo `.github/workflows/playwright.yml` executa automaticamente em todo
+`push` para `main` e em todo Pull Request direcionado para `main`.
+
+A esteira cria um ambiente descartável e executa, nesta ordem:
+
+1. baixa o código do repositório;
+2. instala PHP 8.2 e Node.js;
+3. inicia um MariaDB isolado;
+4. importa `banco.sql`;
+5. inicia o servidor PHP;
+6. executa os testes no Chromium;
+7. salva o relatório do Playwright como artefato por 14 dias.
+
+A senha `root` do workflow pertence somente ao banco temporário criado durante a
+execução e não é uma credencial de produção.
 
 ## Verificação de sintaxe
 

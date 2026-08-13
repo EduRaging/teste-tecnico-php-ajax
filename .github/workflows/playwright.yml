@@ -1,0 +1,75 @@
+name: Testes Playwright
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  testes-e2e:
+    name: Login e CRUD no Chromium
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_NAME: teste_tecnico
+      DB_USER: root
+      DB_PASS: root
+
+    services:
+      mariadb:
+        image: mariadb:11.4
+        env:
+          MARIADB_ROOT_PASSWORD: root
+          MARIADB_DATABASE: teste_tecnico
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    steps:
+      - name: Baixar o código
+        uses: actions/checkout@v7
+
+      - name: Configurar o PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, pdo_mysql
+          coverage: none
+
+      - name: Configurar o Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Instalar as dependências JavaScript
+        run: npm ci
+
+      - name: Instalar o Chromium do Playwright
+        run: npx playwright install --with-deps chromium
+
+      - name: Preparar o banco de testes
+        run: php tests/support/init-database.php
+
+      - name: Executar os testes end-to-end
+        run: npm test
+
+      - name: Salvar o relatório do Playwright
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorio-playwright
+          path: playwright-report/
+          retention-days: 14
