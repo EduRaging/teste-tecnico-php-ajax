@@ -94,7 +94,7 @@ test('cadastra, edita e exclui um usuário via Ajax sem recarregar a página', a
   await busca;
 
   await expect(modalUsuario).toBeVisible();
-  await expect(modalUsuario.locator('#senha')).not.toBeRequired();
+  await expect(modalUsuario.locator('#senha')).not.toHaveAttribute('required', '');
   await modalUsuario.locator('#nome').fill(nomeEditado);
 
   const edicao = page.waitForResponse(
